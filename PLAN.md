@@ -32,6 +32,7 @@ savings goals, and will later add AI insights.
 | 2026-11-02 | Transaction amounts follow Plaid's sign: positive = money out, negative = money in                                                                                   | Avoids converting every synced amount                                                                                                                                                                  |
 | 2026-11-02 | App can only create/edit manual accounts; Plaid accounts and `plaid_items` are written by server functions only                                                      | Bank data and tokens stay server-side; the app cannot fake a bank connection                                                                                                                           |
 | 2026-11-02 | Disconnecting a bank keeps its accounts and transactions (`plaid_item_id` set to null)                                                                               | Preserves spending history                                                                                                                                                                             |
+| 2026-11-02 | Android dev build is an installable APK (`eas.json` `development` profile, `expo-dev-client`); `EXPO_PUBLIC_SUPABASE_*` are stored as EAS environment variables      | Google sign-in and Plaid Link need native code that Expo Go lacks; cloud builds do not see the git-ignored `.env`                                                                                      |
 | 2026-11-02 | Supabase clients use the PKCE flow (`flowType: 'pkce'`)                                                                                                              | Google sign-in on the phone returns a one-time code to exchange for a session; the library default (implicit) returns no code                                                                          |
 | 2026-11-02 | Migrations were applied to the hosted project through Supabase's HTTPS management API and recorded in `supabase_migrations.schema_migrations`                        | The cloud sandbox can only make HTTPS requests, so `supabase db push` (direct Postgres connection) cannot connect from there. From the Mac, `npx supabase db push` works and sees the recorded history |
 | 2026-11-02 | `contribution_limits` is shared read-only reference data, seeded with only the 2026 self-only HSA limit ($4,400)                                                     | Other IRS limits get added once confirmed against the IRS announcement; a wrong limit would give wrong warnings                                                                                        |
@@ -127,6 +128,22 @@ The same code builds the Android app and the website (`expo export --platform we
   - [x] Policy + test for every table in the data model
 - [ ] Tab navigation shell (Overview, Spending, Budget, Goals, Accounts)
 - [x] Seed default categories (5 general categories, in the categories migration)
+
+### Development build (Android)
+
+Prepared 2026-11-02 (`expo-dev-client`, `eas.json`). The build itself needs Scott's Expo account, so it is run from the laptop:
+
+1. `npx eas-cli@latest login` (create a free account at expo.dev first if needed)
+2. `npx eas-cli@latest init` (creates the EAS project and writes its `projectId` into `app.json`; commit that change)
+3. Store the app settings for cloud builds (they are public by design, but `.env` is git-ignored so the cloud build cannot see it). Use the values from your local `.env`:
+   - `npx eas-cli@latest env:create --environment development --name EXPO_PUBLIC_SUPABASE_URL --visibility plaintext`
+   - `npx eas-cli@latest env:create --environment development --name EXPO_PUBLIC_SUPABASE_ANON_KEY --visibility plaintext`
+   - (the CLI prompts for each value; if a flag has been renamed, run the command with `--help`)
+4. `npx eas-cli@latest build --profile development --platform android`. The first build asks to generate an Android keystore: say yes and let EAS keep it.
+5. When it finishes, open the build page link on the Pixel, download the APK and install it (allow installs from this source when asked).
+6. On the laptop run `npx expo start --dev-client` and open the installed app on the phone (same Wi-Fi, or add `--tunnel`).
+
+After the first build, only changes to native code or plugins need a new build; JavaScript changes reload instantly.
 
 ### Phase 2 – Bank connections (Plaid)
 
@@ -246,7 +263,7 @@ The same code builds the Android app and the website (`expo export --platform we
 ### Phase 6 – Release
 
 - [ ] Google Play Console developer account ($25 one-time)
-- [ ] Expo EAS account; `eas build` → Android App Bundle (AAB)
+- [ ] Expo EAS account (also needed for the development build above); `eas build` → Android App Bundle (AAB)
 - [ ] Upload to Play Store **internal testing** track; install on Pixel
 - [ ] Deploy web build (e.g. Vercel)
 

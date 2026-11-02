@@ -38,6 +38,7 @@ Also read `AGENTS.md` (Expo's guidance): check the versioned Expo docs for SDK 5
 - Run on web: `npm run web`
 - Build web: `npx expo export --platform web`
 - Health check: `npx expo-doctor`
+- Android dev build (cloud): `npx eas-cli@latest build --profile development --platform android`, then `npx expo start --dev-client`. Setup steps are in `PLAN.md` ("Development build"). Build-time `EXPO_PUBLIC_*` values live in EAS environment variables, not `.env`.
 
 ## Rules
 
