@@ -4,26 +4,29 @@ Personal finance app for Android (installed on a Pixel via the Play Store) and t
 It pulls transactions from bank accounts, categorizes spending, tracks budgets and
 savings goals, and will later add AI insights.
 
-**Status:** Planning complete. Phase 0 not started.
+**Status:** Phase 0 (setup) complete. Next: Phase 1 (sign-in, database schema).
 
 ---
 
 ## Decisions
 
-| Date | Decision | Why |
-|---|---|---|
-| 2026-11-01 | Personal use only (Scott) | Keeps compliance light; install via Play Store *internal testing* track |
-| 2026-11-01 | Plaid for bank connections | Broadest US bank coverage, built-in transaction categories |
-| 2026-11-01 | Expo (React Native + TypeScript) for Android + web | One codebase for both platforms |
-| 2026-11-01 | Supabase for database, auth, server functions | Postgres + login + Edge Functions in one place |
-| 2026-11-01 | TDD (red-green-refactor, one test at a time) | Per global CLAUDE.md protocol |
-| 2026-11-01 | Use Plaid Transactions + Liabilities + Investments | Cover spending, card/loan due dates, and retirement/brokerage balances |
-| 2026-11-01 | Support manual accounts | Whole life insurance and likely Onity aren't available through Plaid |
-| 2026-11-01 | Push notifications for upcoming payments (`expo-notifications`) | Credit card and mortgage due-date reminders |
-| 2026-11-01 | Personal loans as manual accounts (I owe / owed to me) | Track loans that aren't at a Plaid-connected bank, including loans between people |
-| 2026-11-01 | Recurring detection via Plaid + own backup logic; fixed/variable labels | Spot subscriptions/bills and separate fixed from variable spending |
-| 2026-11-01 | Income from bank deposits + manual entry first; payroll connections explored later | Deposits cover net pay with no extra setup; payroll APIs are business-oriented |
-| 2026-11-01 | Full paycheck breakdown + contributions tracker with IRS limit progress | See taxes, insurance, and 401(k)/HSA contributions per paycheck and YTD |
+| Date       | Decision                                                                           | Why                                                                               |
+| ---------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| 2026-11-01 | Personal use only (Scott)                                                          | Keeps compliance light; install via Play Store _internal testing_ track           |
+| 2026-11-01 | Plaid for bank connections                                                         | Broadest US bank coverage, built-in transaction categories                        |
+| 2026-11-01 | Expo (React Native + TypeScript) for Android + web                                 | One codebase for both platforms                                                   |
+| 2026-11-01 | Supabase for database, auth, server functions                                      | Postgres + login + Edge Functions in one place                                    |
+| 2026-11-01 | TDD (red-green-refactor, one test at a time)                                       | Per global CLAUDE.md protocol                                                     |
+| 2026-11-01 | Use Plaid Transactions + Liabilities + Investments                                 | Cover spending, card/loan due dates, and retirement/brokerage balances            |
+| 2026-11-01 | Support manual accounts                                                            | Whole life insurance and likely Onity aren't available through Plaid              |
+| 2026-11-01 | Push notifications for upcoming payments (`expo-notifications`)                    | Credit card and mortgage due-date reminders                                       |
+| 2026-11-01 | Personal loans as manual accounts (I owe / owed to me)                             | Track loans that aren't at a Plaid-connected bank, including loans between people |
+| 2026-11-01 | Recurring detection via Plaid + own backup logic; fixed/variable labels            | Spot subscriptions/bills and separate fixed from variable spending                |
+| 2026-11-01 | Income from bank deposits + manual entry first; payroll connections explored later | Deposits cover net pay with no extra setup; payroll APIs are business-oriented    |
+| 2026-11-01 | Full paycheck breakdown + contributions tracker with IRS limit progress            | See taxes, insurance, and 401(k)/HSA contributions per paycheck and YTD           |
+| 2026-11-01 | Hosted Supabase project for development (no local Docker)                          | Docker no longer supports macOS 12                                                |
+| 2026-11-01 | Build Android app with EAS cloud builds                                            | Avoids installing Android Studio on this Mac                                      |
+| 2026-11-01 | Web output is static (`web.output: static`)                                        | Simple hosting (e.g. Vercel)                                                      |
 
 ---
 
@@ -33,6 +36,7 @@ savings goals, and will later add AI insights.
 The same code builds the Android app and the website (`expo export --platform web`).
 
 **Backend (Supabase)**
+
 - Auth: email or Google sign-in.
 - Row Level Security (RLS) on every table, so only the signed-in user can read their data.
 - Edge Functions (server-side only):
@@ -44,6 +48,7 @@ The same code builds the Android app and the website (`expo export --platform we
 - Plaid access tokens are stored encrypted (Supabase Vault) and **never** sent to the phone or browser.
 
 **Data model**
+
 - `plaid_items`: one per bank login
 - `accounts`: checking, savings, credit cards, loans, investments; `source` = plaid or manual
 - `liabilities`: credit card and loan details (statement balance, minimum payment, due date, rate)
@@ -67,10 +72,12 @@ The same code builds the Android app and the website (`expo export --platform we
 **Categorization order:** a manual edit beats a user rule, and a user rule beats Plaid's category. The original Plaid category is always kept, so edits can be undone.
 
 **Libraries**
+
 - Charts: `react-native-gifted-charts` (SVG, so it works on Android and web)
 - Plaid Link: `react-native-plaid-link-sdk` (Android), `react-plaid-link` (web). Needs an Expo **development build**; Expo Go won't work.
 
 **Testing**
+
 - App: Jest + React Native Testing Library
 - Edge Functions: `deno test`
 - Database: SQL tests for RLS policies
@@ -80,14 +87,19 @@ The same code builds the Android app and the website (`expo export --platform we
 ## Roadmap
 
 ### Phase 0 – Setup
-- [ ] Scaffold Expo project (TypeScript, Expo Router)
-- [ ] ESLint + Prettier
-- [ ] Jest + React Native Testing Library, with one passing smoke test
-- [ ] Create Supabase project; install Supabase CLI; run local Supabase
-- [ ] `.env` handling (no secrets in git)
-- [ ] GitHub repo (optional)
+
+- [x] Scaffold Expo project (SDK 58, TypeScript, Expo Router) with five tabs as placeholder screens
+- [x] ESLint + Prettier (`npm run lint`, `npm run format`)
+- [x] Jest + React Native Testing Library (`npm test`), 14 tests
+- [x] Hosted Supabase project created; app connects (verified: auth endpoint returns 200)
+- [x] Supabase client: encrypted session storage on Android, browser storage on web
+- [x] `.env` handling (`.env` git-ignored, `.env.example` committed)
+- [x] GitHub repo
+- [x] Web build works (`npx expo export --platform web`); `expo-doctor` 20/20
+- [ ] Moved to Phase 1: install Supabase CLI and link the project (for database migrations)
 
 ### Phase 1 – Foundations
+
 - [ ] Sign in / sign out (email, then Google)
 - [ ] Database schema migrations for all tables above
 - [ ] RLS policies + tests
@@ -95,6 +107,7 @@ The same code builds the Android app and the website (`expo export --platform we
 - [ ] Seed default categories
 
 ### Phase 2 – Bank connections (Plaid)
+
 - [ ] Plaid developer account; sandbox keys
 - [ ] `plaid-link-token` + `plaid-exchange` Edge Functions
 - [ ] Plaid Link button on Accounts tab (Android + web)
@@ -106,6 +119,7 @@ The same code builds the Android app and the website (`expo export --platform we
 - [ ] Register Android package name + OAuth redirect for OAuth banks
 
 ### Phase 2b – Accounts, balances & payment reminders
+
 - [ ] Accounts tab grouped by type: Cash, Credit cards, Loans, Investments & retirement, Insurance
 - [ ] Current balance for every account; net worth total on Overview
 - [ ] Credit cards: balance, statement balance, minimum payment, due date (Plaid Liabilities)
@@ -122,6 +136,7 @@ The same code builds the Android app and the website (`expo export --platform we
 - [ ] Daily balance snapshots so we can chart net worth over time
 
 ### Phase 3 – Spending tab
+
 - [ ] Transaction list (newest first, infinite scroll)
 - [ ] Search and filter by date range, account, category
 - [ ] Spending by category chart (donut/pie)
@@ -131,6 +146,7 @@ The same code builds the Android app and the website (`expo export --platform we
 - [ ] Manage categories (add, rename, color)
 
 ### Phase 3b – Recurring charges & fixed/variable expenses
+
 - [ ] Detect recurring charges with Plaid's recurring transactions endpoint (`/transactions/recurring/get`): merchant, frequency, average amount, last/next date
 - [ ] Our own detection as a backup (same merchant, regular interval, similar amount) for manual accounts or anything Plaid misses
 - [ ] "Recurring" screen: subscriptions and bills, monthly total, next expected date
@@ -142,7 +158,8 @@ The same code builds the Android app and the website (`expo export --platform we
 - [ ] Recurring charges and mortgage/loan payments feed the upcoming payments list
 
 ### Phase 3c – Income
-- [ ] Detect income from bank deposits: Plaid's recurring endpoint also returns *inflow* streams (paychecks, transfers in) with frequency and average amount
+
+- [ ] Detect income from bank deposits: Plaid's recurring endpoint also returns _inflow_ streams (paychecks, transfers in) with frequency and average amount
 - [ ] Income sources list: employer paychecks, side income, rental, interest/dividends, other
 - [ ] Add manual income (one-time or recurring: amount, frequency, next date) for anything not deposited to a connected account
 - [ ] Mark deposits as income vs. not income (transfers between my own accounts, refunds, loan repayments owed to me)
@@ -161,10 +178,10 @@ The same code builds the Android app and the website (`expo export --platform we
   - Progress toward IRS annual limits (401(k), HSA, IRA) with a warning when on pace to exceed or fall short
   - Cross-check against the deposits seen in the linked Principal/Fidelity accounts (Plaid Investments)
 - [ ] **Paycheck template based on the real BambooHR stub layout** (no personal numbers stored in this repo):
-  - Pay schedule: **monthly** (period = calendar month, pay date the 5th of the following month). Tax-year totals follow the *pay date*.
+  - Pay schedule: **monthly** (period = calendar month, pay date the 5th of the following month). Tax-year totals follow the _pay date_.
   - Earnings: Regular (hours: worked + holiday), Non-taxable reimbursements (e.g. mileage). Reimbursements count as income but not taxable wages.
   - Taxes: Federal, State (IA), Social Security, Medicare, each with "wages this period" since taxable wages differ per tax
-  - Pre-tax deductions, and *which taxes they reduce*:
+  - Pre-tax deductions, and _which taxes they reduce_:
     - Medical, Dental, HSA (Section 125): reduce federal, state **and** FICA wages
     - Traditional 401(k): reduces federal and state wages only (still pays FICA)
   - Post-tax deductions: Roth 401(k)
@@ -178,15 +195,17 @@ The same code builds the Android app and the website (`expo export --platform we
 - [ ] Expected paydays shown alongside upcoming payments
 
 **Connecting to income sources (explore):**
-| Option | What it gives | Fit for a personal app |
-|---|---|---|
-| Bank deposits via Plaid (above) | Net pay amounts and dates | Best default; no extra connections |
-| Plaid Income (Bank Income / Payroll Income) | Payroll provider data: gross pay, deductions, pay stubs | Aimed at lenders; needs separate Plaid approval and pricing |
-| Payroll APIs (Argyle, Pinwheel, Atomic, Truv) | Direct connection to ADP, Workday, Gusto, etc. | Built for businesses; contract-based, likely overkill |
-| Pay stub upload (PDF/photo) → AI extraction (Phase 7) | Gross pay and deductions from each stub | Cheap, works with any employer |
-| **BambooHR** (Scott's employer) | Has a REST API; users can create personal API keys that inherit their own permissions | Explore: confirm (1) employer runs payroll in BambooHR Payroll vs. another provider, (2) employer allows API keys, (3) pay stub data is reachable via API. Fallback: download PDF stubs from BambooHR and upload |
+
+| Option                                                | What it gives                                                                         | Fit for a personal app                                                                                                                                                                                           |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bank deposits via Plaid (above)                       | Net pay amounts and dates                                                             | Best default; no extra connections                                                                                                                                                                               |
+| Plaid Income (Bank Income / Payroll Income)           | Payroll provider data: gross pay, deductions, pay stubs                               | Aimed at lenders; needs separate Plaid approval and pricing                                                                                                                                                      |
+| Payroll APIs (Argyle, Pinwheel, Atomic, Truv)         | Direct connection to ADP, Workday, Gusto, etc.                                        | Built for businesses; contract-based, likely overkill                                                                                                                                                            |
+| Pay stub upload (PDF/photo) → AI extraction (Phase 7) | Gross pay and deductions from each stub                                               | Cheap, works with any employer                                                                                                                                                                                   |
+| **BambooHR** (Scott's employer)                       | Has a REST API; users can create personal API keys that inherit their own permissions | Explore: confirm (1) employer runs payroll in BambooHR Payroll vs. another provider, (2) employer allows API keys, (3) pay stub data is reachable via API. Fallback: download PDF stubs from BambooHR and upload |
 
 ### Phase 4 – Budgets
+
 - [ ] Set a monthly amount per category
 - [ ] Budget split into fixed (pre-filled from recurring charges) and variable (what's left to plan)
 - [ ] Budget starts from expected monthly income: income − fixed − savings goals = available for variable spending
@@ -195,18 +214,21 @@ The same code builds the Android app and the website (`expo export --platform we
 - [ ] Overview tab shows this month's budget health
 
 ### Phase 5 – Savings goals
+
 - [ ] Create goal: name, target amount, target date (e.g. trip, large purchase)
 - [ ] Add contributions manually or link a savings account
 - [ ] Progress bar + "save $X/month to hit your date"
 - [ ] Goals summary on Overview tab
 
 ### Phase 6 – Release
+
 - [ ] Google Play Console developer account ($25 one-time)
 - [ ] Expo EAS account; `eas build` → Android App Bundle (AAB)
 - [ ] Upload to Play Store **internal testing** track; install on Pixel
 - [ ] Deploy web build (e.g. Vercel)
 
 ### Phase 7 – AI insights
+
 - [ ] `ai-insights` Edge Function calling the Claude API
 - [ ] Send **aggregated** data only (category totals, trends), no account numbers
 - [ ] Insights: spending trends, unusual charges, budget suggestions, goal forecasts
@@ -223,20 +245,20 @@ with Plaid's `/institutions/search` endpoint (shows supported products + OAuth f
 **Plaid products we need:** Transactions (spending), Liabilities (card/mortgage balances,
 due dates, minimum payments), Investments (401k, IRAs, HSA, brokerage).
 
-| Institution | Accounts | Plaid product | Expected support | OAuth? | Status | Notes |
-|---|---|---|---|---|---|---|
-| Wells Fargo | Checking, Savings | Transactions | Yes | Yes | To verify | |
-| Wells Fargo | Credit card | Transactions, Liabilities | Yes | Yes | To verify | Same login as checking, one connection |
-| GreenState Credit Union | Checking | Transactions | Likely | Unknown | To verify | |
-| GreenState Credit Union | Mortgage | Liabilities | Uncertain | Unknown | To verify | Plaid mortgage detail covers fewer banks; manual fallback |
-| Citi | Credit card | Transactions, Liabilities | Yes | Yes | To verify | |
-| Bank of America | Credit card | Transactions, Liabilities | Yes | Yes | To verify | |
-| Onity (mortgage servicer) | Mortgage | Liabilities | Unlikely | Unknown | To verify | Probably a manual account: balance, rate, due date, payment |
-| Principal Financial | 401(k) | Investments | Likely | Unknown | To verify | |
-| Northwestern Mutual | Roth IRA, Traditional IRA | Investments | Uncertain | Unknown | To verify | Manual fallback if unsupported |
-| Northwestern Mutual | Whole life insurance | — | No | — | Manual | Plaid doesn't cover insurance; track cash value manually |
-| Fidelity Investments | HSA | Investments | Yes | Yes | To verify | |
-| Robinhood | Individual brokerage | Investments | Yes | Yes | To verify | |
+| Institution               | Accounts                  | Plaid product             | Expected support | OAuth?  | Status    | Notes                                                       |
+| ------------------------- | ------------------------- | ------------------------- | ---------------- | ------- | --------- | ----------------------------------------------------------- |
+| Wells Fargo               | Checking, Savings         | Transactions              | Yes              | Yes     | To verify |                                                             |
+| Wells Fargo               | Credit card               | Transactions, Liabilities | Yes              | Yes     | To verify | Same login as checking, one connection                      |
+| GreenState Credit Union   | Checking                  | Transactions              | Likely           | Unknown | To verify |                                                             |
+| GreenState Credit Union   | Mortgage                  | Liabilities               | Uncertain        | Unknown | To verify | Plaid mortgage detail covers fewer banks; manual fallback   |
+| Citi                      | Credit card               | Transactions, Liabilities | Yes              | Yes     | To verify |                                                             |
+| Bank of America           | Credit card               | Transactions, Liabilities | Yes              | Yes     | To verify |                                                             |
+| Onity (mortgage servicer) | Mortgage                  | Liabilities               | Unlikely         | Unknown | To verify | Probably a manual account: balance, rate, due date, payment |
+| Principal Financial       | 401(k)                    | Investments               | Likely           | Unknown | To verify |                                                             |
+| Northwestern Mutual       | Roth IRA, Traditional IRA | Investments               | Uncertain        | Unknown | To verify | Manual fallback if unsupported                              |
+| Northwestern Mutual       | Whole life insurance      | —                         | No               | —       | Manual    | Plaid doesn't cover insurance; track cash value manually    |
+| Fidelity Investments      | HSA                       | Investments               | Yes              | Yes     | To verify |                                                             |
+| Robinhood                 | Individual brokerage      | Investments               | Yes              | Yes     | To verify |                                                             |
 
 **Fallback for anything Plaid can't connect:** manual accounts. You enter the balance (and for
 loans: rate, payment, due date) and update it when you like. They still count in net worth
@@ -245,6 +267,7 @@ and payment reminders.
 ---
 
 ## Open items
+
 - [x] Scott to send the list of banks/cards (2026-11-01)
 - [ ] Confirm each institution in Plaid (`/institutions/search`) once Plaid keys exist
 - [ ] Check Plaid pricing for Liabilities + Investments + Recurring Transactions (billed on top of Transactions)
