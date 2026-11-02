@@ -4,3 +4,6 @@ dist/
 web-build/
 coverage/
 package-lock.json
+
+# Created by `supabase link`; not part of the repo
+supabase/.temp/
