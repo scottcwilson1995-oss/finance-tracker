@@ -4,30 +4,34 @@ Personal finance app for Android (installed on a Pixel via the Play Store) and t
 It pulls transactions from bank accounts, categorizes spending, tracks budgets and
 savings goals, and will later add AI insights.
 
-**Status:** Phase 0 (setup) complete. Phase 1 in progress (database test harness + `accounts` table done).
+**Status:** Phase 0 (setup) complete. Phase 1 in progress (core spending tables done: accounts, categories, plaid_items, transactions, category_rules).
 
 ---
 
 ## Decisions
 
-| Date       | Decision                                                                           | Why                                                                                |
-| ---------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| 2026-11-01 | Personal use only (Scott)                                                          | Keeps compliance light; install via Play Store _internal testing_ track            |
-| 2026-11-01 | Plaid for bank connections                                                         | Broadest US bank coverage, built-in transaction categories                         |
-| 2026-11-01 | Expo (React Native + TypeScript) for Android + web                                 | One codebase for both platforms                                                    |
-| 2026-11-01 | Supabase for database, auth, server functions                                      | Postgres + login + Edge Functions in one place                                     |
-| 2026-11-01 | TDD (red-green-refactor, one test at a time)                                       | Per global CLAUDE.md protocol                                                      |
-| 2026-11-01 | Use Plaid Transactions + Liabilities + Investments                                 | Cover spending, card/loan due dates, and retirement/brokerage balances             |
-| 2026-11-01 | Support manual accounts                                                            | Whole life insurance and likely Onity aren't available through Plaid               |
-| 2026-11-01 | Push notifications for upcoming payments (`expo-notifications`)                    | Credit card and mortgage due-date reminders                                        |
-| 2026-11-01 | Personal loans as manual accounts (I owe / owed to me)                             | Track loans that aren't at a Plaid-connected bank, including loans between people  |
-| 2026-11-01 | Recurring detection via Plaid + own backup logic; fixed/variable labels            | Spot subscriptions/bills and separate fixed from variable spending                 |
-| 2026-11-01 | Income from bank deposits + manual entry first; payroll connections explored later | Deposits cover net pay with no extra setup; payroll APIs are business-oriented     |
-| 2026-11-01 | Full paycheck breakdown + contributions tracker with IRS limit progress            | See taxes, insurance, and 401(k)/HSA contributions per paycheck and YTD            |
-| 2026-11-01 | Hosted Supabase project for development (no local Docker)                          | Docker no longer supports macOS 12                                                 |
-| 2026-11-01 | Build Android app with EAS cloud builds                                            | Avoids installing Android Studio on this Mac                                       |
-| 2026-11-01 | Web output is static (`web.output: static`)                                        | Simple hosting (e.g. Vercel)                                                       |
-| 2026-11-02 | Test RLS with SQL files run on a throwaway local Postgres (`npm run test:db`)      | No Docker for `supabase start`; fast, and a guard test fails any table without RLS |
+| Date       | Decision                                                                                                        | Why                                                                                    |
+| ---------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 2026-11-01 | Personal use only (Scott)                                                                                       | Keeps compliance light; install via Play Store _internal testing_ track                |
+| 2026-11-01 | Plaid for bank connections                                                                                      | Broadest US bank coverage, built-in transaction categories                             |
+| 2026-11-01 | Expo (React Native + TypeScript) for Android + web                                                              | One codebase for both platforms                                                        |
+| 2026-11-01 | Supabase for database, auth, server functions                                                                   | Postgres + login + Edge Functions in one place                                         |
+| 2026-11-01 | TDD (red-green-refactor, one test at a time)                                                                    | Per global CLAUDE.md protocol                                                          |
+| 2026-11-01 | Use Plaid Transactions + Liabilities + Investments                                                              | Cover spending, card/loan due dates, and retirement/brokerage balances                 |
+| 2026-11-01 | Support manual accounts                                                                                         | Whole life insurance and likely Onity aren't available through Plaid                   |
+| 2026-11-01 | Push notifications for upcoming payments (`expo-notifications`)                                                 | Credit card and mortgage due-date reminders                                            |
+| 2026-11-01 | Personal loans as manual accounts (I owe / owed to me)                                                          | Track loans that aren't at a Plaid-connected bank, including loans between people      |
+| 2026-11-01 | Recurring detection via Plaid + own backup logic; fixed/variable labels                                         | Spot subscriptions/bills and separate fixed from variable spending                     |
+| 2026-11-01 | Income from bank deposits + manual entry first; payroll connections explored later                              | Deposits cover net pay with no extra setup; payroll APIs are business-oriented         |
+| 2026-11-01 | Full paycheck breakdown + contributions tracker with IRS limit progress                                         | See taxes, insurance, and 401(k)/HSA contributions per paycheck and YTD                |
+| 2026-11-01 | Hosted Supabase project for development (no local Docker)                                                       | Docker no longer supports macOS 12                                                     |
+| 2026-11-01 | Build Android app with EAS cloud builds                                                                         | Avoids installing Android Studio on this Mac                                           |
+| 2026-11-01 | Web output is static (`web.output: static`)                                                                     | Simple hosting (e.g. Vercel)                                                           |
+| 2026-11-02 | Test RLS with SQL files run on a throwaway local Postgres (`npm run test:db`)                                   | No Docker for `supabase start`; fast, and a guard test fails any table without RLS     |
+| 2026-11-02 | Five general default categories: Housing & Bills (fixed), Food, Transportation, Lifestyle, Health & Personal    | Keeps categorizing simple; users add their own for detail; no category = Uncategorized |
+| 2026-11-02 | Transaction amounts follow Plaid's sign: positive = money out, negative = money in                              | Avoids converting every synced amount                                                  |
+| 2026-11-02 | App can only create/edit manual accounts; Plaid accounts and `plaid_items` are written by server functions only | Bank data and tokens stay server-side; the app cannot fake a bank connection           |
+| 2026-11-02 | Disconnecting a bank keeps its accounts and transactions (`plaid_item_id` set to null)                          | Preserves spending history                                                             |
 
 ---
 
@@ -104,14 +108,15 @@ The same code builds the Android app and the website (`expo export --platform we
 
 - [ ] Sign in / sign out (email, then Google)
 - [ ] Database schema migrations for all tables above
-  - [x] `accounts` (minimal: id, user, source, name, type)
-  - [ ] remaining tables from the data model
+  - [x] `accounts` (minimal: id, user, source, name, type, Plaid link)
+  - [x] `categories` (5 defaults seeded), `plaid_items`, `transactions`, `category_rules`
+  - [ ] remaining tables from the data model (liabilities, balance_snapshots, holdings, payment_reminders, loan_payments, recurring_streams, income/paycheck tables, contribution_limits, budgets, savings goals)
 - [ ] RLS policies + tests (`npm run test:db`)
   - [x] Test harness + guard test: every public table must have RLS and a policy
-  - [x] `accounts` policy + test
+  - [x] Policy + test for accounts, categories, plaid_items, transactions, category_rules
   - [ ] policy + test for each remaining table
 - [ ] Tab navigation shell (Overview, Spending, Budget, Goals, Accounts)
-- [ ] Seed default categories
+- [x] Seed default categories (5 general categories, in the categories migration)
 
 ### Phase 2 – Bank connections (Plaid)
 
