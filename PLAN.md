@@ -115,10 +115,11 @@ The same code builds the Android app and the website (`expo export --platform we
   - [x] `accounts` (minimal: id, user, source, name, type, Plaid link)
   - [x] `categories` (5 defaults seeded), `plaid_items`, `transactions`, `category_rules`
   - [x] `account_settings` + `transactions_in_scope` view (per-account date to exclude older transactions)
-  - [ ] remaining tables from the data model (liabilities, balance_snapshots, holdings, payment_reminders, loan_payments, recurring_streams, income/paycheck tables, contribution_limits, budgets, savings goals)
+  - [x] `balance_snapshots`, `liabilities`, `holdings`, `payment_reminders`, `loan_payments`, `recurring_streams`, `income_sources`, `paychecks`, `paycheck_lines`, `paycheck_templates`
+  - [ ] remaining: `contribution_limits`, `budgets` + `budget_lines`, `savings_goals` + `goal_contributions`
 - [ ] RLS policies + tests (`npm run test:db`)
   - [x] Test harness + guard test: every public table must have RLS and a policy
-  - [x] Policy + test for accounts, categories, plaid_items, transactions, category_rules
+  - [x] Policy + test for every table so far (guard test fails any table without RLS)
   - [ ] policy + test for each remaining table
 - [ ] Tab navigation shell (Overview, Spending, Budget, Goals, Accounts)
 - [x] Seed default categories (5 general categories, in the categories migration)
