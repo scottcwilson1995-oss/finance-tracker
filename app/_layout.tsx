@@ -1,10 +1,12 @@
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
+import AppStack from '@/components/AppStack';
 import { useColorScheme } from '@/components/useColorScheme';
+import { AuthProvider } from '@/lib/auth';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -47,9 +49,9 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
+      <AuthProvider>
+        <AppStack />
+      </AuthProvider>
     </ThemeProvider>
   );
 }

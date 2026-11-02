@@ -6,6 +6,8 @@ import BudgetScreen from '@/app/(tabs)/budget';
 import GoalsScreen from '@/app/(tabs)/goals';
 import AccountsScreen from '@/app/(tabs)/accounts';
 
+jest.mock('@/lib/auth', () => ({ useAuth: () => ({ signOut: jest.fn() }) }));
+
 describe('Tab screens', () => {
   it.each([
     ['Overview', OverviewScreen],

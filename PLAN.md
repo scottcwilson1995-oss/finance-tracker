@@ -107,6 +107,8 @@ The same code builds the Android app and the website (`expo export --platform we
 ### Phase 1 – Foundations
 
 - [ ] Sign in / sign out (email, then Google)
+  - [x] Email + password sign in, create account, sign out; signed-out users can only reach the sign-in screen (`Stack.Protected`). Unit-tested; **not yet verified on a device or in a browser** (see Open items)
+  - [ ] Google sign-in
 - [ ] Database schema migrations for all tables above
   - [x] `accounts` (minimal: id, user, source, name, type, Plaid link)
   - [x] `categories` (5 defaults seeded), `plaid_items`, `transactions`, `category_rules`
@@ -279,6 +281,9 @@ and payment reminders.
 ---
 
 ## Open items
+
+- [ ] **Check web rendering on the laptop** (`npm run web`). In the cloud sandbox the HTML Expo generates has no `<script>` tag for the app bundle (dev server and `expo export`, also on the Phase 0 commit), so the page stays blank. Unknown whether that is the sandbox or a real Phase 0 web bug; the Phase 0 "web build works" check only proved the export command succeeds
+- [ ] Supabase Auth settings (dashboard): decide whether email confirmation is required; add redirect URLs before Google sign-in
 
 - [x] Scott to send the list of banks/cards (2026-11-01)
 - [ ] Confirm each institution in Plaid (`/institutions/search`) once Plaid keys exist
