@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, TextInput } from 'react-native';
 
 import { Text, View } from '@/components/Themed';
 import { useAuth } from '@/lib/auth';
+import { signInWithGoogle } from '@/lib/googleSignIn';
 
 export default function SignInScreen() {
   const { signIn, signUp } = useAuth();
@@ -19,6 +20,11 @@ export default function SignInScreen() {
   async function handleSignIn() {
     if (missingFields()) return;
     const { error } = await signIn(email.trim(), password);
+    setMessage(error);
+  }
+
+  async function handleGoogle() {
+    const { error } = await signInWithGoogle();
     setMessage(error);
   }
 
@@ -70,6 +76,14 @@ export default function SignInScreen() {
       >
         <Text style={styles.secondaryButtonText}>Create account</Text>
       </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Continue with Google"
+        style={styles.googleButton}
+        onPress={handleGoogle}
+      >
+        <Text style={styles.googleButtonText}>Continue with Google</Text>
+      </Pressable>
       {message ? (
         <Text accessibilityRole="alert" style={styles.message}>
           {message}
@@ -94,5 +108,13 @@ const styles = StyleSheet.create({
   button: { backgroundColor: '#2f95dc', borderRadius: 8, padding: 14, alignItems: 'center' },
   secondaryButton: { borderRadius: 8, padding: 14, alignItems: 'center' },
   secondaryButtonText: { color: '#2f95dc', fontWeight: 'bold', fontSize: 16 },
+  googleButton: {
+    borderWidth: 1,
+    borderColor: '#9ca3af',
+    borderRadius: 8,
+    padding: 14,
+    alignItems: 'center',
+  },
+  googleButtonText: { fontWeight: 'bold', fontSize: 16 },
   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
 });

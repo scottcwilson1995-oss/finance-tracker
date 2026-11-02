@@ -23,6 +23,7 @@ describe('supabase client (mobile)', () => {
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: false,
+          flowType: 'pkce',
         }),
       }),
     );
@@ -43,6 +44,7 @@ describe('supabase client (web)', () => {
     const options = (createClient as jest.Mock).mock.calls[0][2];
     expect(options.auth.storage).toBeUndefined();
     expect(options.auth.persistSession).toBe(true);
+    expect(options.auth.flowType).toBe('pkce');
     expect(SecureSessionStorage).not.toHaveBeenCalled();
   });
 });

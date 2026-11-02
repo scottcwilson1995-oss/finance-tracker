@@ -2,8 +2,10 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import SignInScreen from '@/app/sign-in';
 import { useAuth } from '@/lib/auth';
+import { signInWithGoogle } from '@/lib/googleSignIn';
 
 jest.mock('@/lib/auth', () => ({ useAuth: jest.fn() }));
+jest.mock('@/lib/googleSignIn', () => ({ signInWithGoogle: jest.fn() }));
 
 const signIn = jest.fn();
 const signUp = jest.fn();
@@ -63,4 +65,23 @@ describe('Sign-in screen', () => {
       expect(signUp).not.toHaveBeenCalled();
     },
   );
+
+  it('starts Google sign-in', async () => {
+    (signInWithGoogle as jest.Mock).mockResolvedValue({ error: null });
+    await render(<SignInScreen />);
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Continue with Google' }));
+
+    expect(signInWithGoogle).toHaveBeenCalled();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('shows the error when Google sign-in fails', async () => {
+    (signInWithGoogle as jest.Mock).mockResolvedValue({ error: 'Access blocked: not a test user' });
+    await render(<SignInScreen />);
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Continue with Google' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Access blocked: not a test user');
+  });
 });

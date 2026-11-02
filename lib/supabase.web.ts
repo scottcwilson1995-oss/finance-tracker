@@ -9,5 +9,7 @@ export const supabase = createClient(url, key, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+    // OAuth (Google) returns a one-time code that is exchanged for a session.
+    flowType: 'pkce',
   },
 });
