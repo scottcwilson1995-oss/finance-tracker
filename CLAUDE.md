@@ -19,7 +19,9 @@ Also read `AGENTS.md` (Expo's guidance): check the versioned Expo docs for SDK 5
 - `lib/`: business logic and services (`supabase.ts` for Android, `supabase.web.ts` for web)
 - `constants/`: colors and other constants
 - `__tests__/`: Jest tests, named `*-test.ts(x)`
-- Planned: `supabase/migrations/` (database schema), `supabase/functions/` (Edge Functions: `plaid-*`, `ai-insights`)
+- `supabase/migrations/`: database schema; `supabase/tests/`: SQL tests (`*_test.sql`, plus `support/` stand-ins for Supabase's `auth` schema and roles)
+- `scripts/`: dev scripts (`test-db.sh` runs the SQL tests)
+- Planned: `supabase/functions/` (Edge Functions: `plaid-*`, `ai-insights`)
 
 ## Environment
 
@@ -31,6 +33,7 @@ Also read `AGENTS.md` (Expo's guidance): check the versioned Expo docs for SDK 5
 
 - All checks (run before calling work done): `npm run check` (typecheck + lint + format check + tests)
 - Tests: `npm test` (watch mode: `npm run test:watch`)
+- Database tests: `npm run test:db` (throwaway local Postgres 16, no Docker; needs the Postgres server binaries, set `PGBIN` if not in `/usr/lib/postgresql/16/bin`). Not part of `npm run check` because this Mac has no Postgres server.
 - Format: `npm run format`
 - Run on web: `npm run web`
 - Build web: `npx expo export --platform web`
