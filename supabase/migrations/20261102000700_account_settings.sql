@@ -37,6 +37,8 @@ create policy "Users delete their own account settings"
 
 -- The app reads transactions through this view. security_invoker makes it run
 -- with the caller's permissions, so row level security on every table still applies.
+-- NOTE: t.* is expanded when the view is created. A migration that adds a column to
+-- transactions must also re-create this view, or the new column will not appear in it.
 create view public.transactions_in_scope
   with (security_invoker = true) as
 select t.*

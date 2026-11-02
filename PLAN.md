@@ -32,6 +32,7 @@ savings goals, and will later add AI insights.
 | 2026-11-02 | Transaction amounts follow Plaid's sign: positive = money out, negative = money in                                                                                   | Avoids converting every synced amount                                                                                         |
 | 2026-11-02 | App can only create/edit manual accounts; Plaid accounts and `plaid_items` are written by server functions only                                                      | Bank data and tokens stay server-side; the app cannot fake a bank connection                                                  |
 | 2026-11-02 | Disconnecting a bank keeps its accounts and transactions (`plaid_item_id` set to null)                                                                               | Preserves spending history                                                                                                    |
+| 2026-11-02 | `contribution_limits` is shared read-only reference data, seeded with only the 2026 self-only HSA limit ($4,400)                                                     | Other IRS limits get added once confirmed against the IRS announcement; a wrong limit would give wrong warnings               |
 | 2026-11-02 | "Start tracking from" date is **per account** (`account_settings.exclude_before`); older transactions are hidden via the `transactions_in_scope` view, never deleted | Scott wants a separate cutoff per account; moving the date back restores history; the app reads transactions through the view |
 
 ---
@@ -111,16 +112,17 @@ The same code builds the Android app and the website (`expo export --platform we
 - [ ] Sign in / sign out (email, then Google)
   - [x] Email + password sign in, create account, sign out; signed-out users can only reach the sign-in screen (`Stack.Protected`). Unit-tested; **not yet verified on a device or in a browser** (see Open items)
   - [ ] Google sign-in
-- [ ] Database schema migrations for all tables above
+- [x] Database schema migrations for all tables above (written and tested locally; **not yet applied to the hosted project**, which needs the link)
   - [x] `accounts` (minimal: id, user, source, name, type, Plaid link)
   - [x] `categories` (5 defaults seeded), `plaid_items`, `transactions`, `category_rules`
   - [x] `account_settings` + `transactions_in_scope` view (per-account date to exclude older transactions)
   - [x] `balance_snapshots`, `liabilities`, `holdings`, `payment_reminders`, `loan_payments`, `recurring_streams`, `income_sources`, `paychecks`, `paycheck_lines`, `paycheck_templates`
-  - [ ] remaining: `contribution_limits`, `budgets` + `budget_lines`, `savings_goals` + `goal_contributions`
-- [ ] RLS policies + tests (`npm run test:db`)
+  - [x] `contribution_limits`, `budgets` + `budget_lines`, `savings_goals` + `goal_contributions`
+  - [x] All tables in the data model are now migrated
+- [x] RLS policies + tests (`npm run test:db`)
   - [x] Test harness + guard test: every public table must have RLS and a policy
   - [x] Policy + test for every table so far (guard test fails any table without RLS)
-  - [ ] policy + test for each remaining table
+  - [x] Policy + test for every table in the data model
 - [ ] Tab navigation shell (Overview, Spending, Budget, Goals, Accounts)
 - [x] Seed default categories (5 general categories, in the categories migration)
 
@@ -286,6 +288,10 @@ and payment reminders.
 ---
 
 ## Open items
+
+- [ ] Add the 401(k), 401(k) catch-up and IRA limits to `contribution_limits` after confirming them against the IRS announcement (also the HSA family and catch-up limits if they ever apply)
+- [ ] Accounts have no balance column yet (needed for "current balance" and net worth in Phase 2b); `balance_snapshots` only stores history
+- [ ] `transactions_in_scope` uses `select t.*`, which freezes the column list when the view is created: re-create the view in any migration that adds a column to `transactions`
 
 - [ ] **Check web rendering on the laptop** (`npm run web`). In the cloud sandbox the HTML Expo generates has no `<script>` tag for the app bundle (dev server and `expo export`, also on the Phase 0 commit), so the page stays blank. Unknown whether that is the sandbox or a real Phase 0 web bug; the Phase 0 "web build works" check only proved the export command succeeds
 - [ ] Supabase Auth settings (dashboard): decide whether email confirmation is required; add redirect URLs before Google sign-in
